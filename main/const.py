@@ -4,7 +4,9 @@ class EventType:
     """
 
     anniversary = "anniversary"
+    anniversary_ru = "Годовщина"
     birthday = "birthday"
+    birthday_ru = "День рождения"
 
 
 class AbsentReason:
@@ -13,14 +15,22 @@ class AbsentReason:
     """
 
     vacation = "vacation"
+    vacation_ru = "Отпуск"
     illness = "illness"
+    illness_ru = "Больничный"
 
+
+ABSENT_REASON_MAP = {
+    AbsentReason.vacation_ru: AbsentReason.vacation,
+    AbsentReason.illness_ru: AbsentReason.illness,
+}
 
 # Logging message format.
 LOG_FORMAT = "[%(asctime)s] %(message)s"
 
 DEFAULT_DATE_FORMAT = "%Y-%m-%d"
 DEFAULT_MONTH_FORMAT = "%m-%Y"
+EVENT_DATE_FORMAT = "%d %B"
 
 DEFAULT_HEADERS = {"x-requested-with": "XMLHttpRequest"}
 
