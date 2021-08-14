@@ -38,3 +38,7 @@ USER_SCHEDULE_DATA_ENDPOINT = (
 USER_NAME_ENDPOINT = "/employee/vue/common/info?employee_id={employee_id}"
 USER_CONTACTS_ENDPOINT = "/employee/vue/contacts?employee_id={employee_id}"
 USER_EVENTS_ENDPOINT = "/calendar/api/day?day={date}"
+
+# Each type of contact has specific ID.
+# We need only telegram account.
+TELEGRAM_CONTACT_ID = 5
