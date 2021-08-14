@@ -1,10 +1,12 @@
 import re
+from collections import defaultdict
 from typing import Dict, List
 
 import dateparser
 import requests
 
 from main import config, const
+from main.const import AbsentReason, EventType
 from main.exceptions import CSRF_TOKEN_NOT_FOUND, CsrfTokenNotFoundException
 from main.logs import create_logger
 from main.utils import get_current_date
@@ -59,11 +61,13 @@ class HurmaService:
 
         return absent_user_ids
 
-    def get_absent_users_info(self, users_id: List[int]) -> List[dict]:
+    def get_absent_users_info(self, users_id: List[int]) -> dict:
         """
         Get all info about absent user.
         """
-        users_info = []
+        users_info = defaultdict(list)
+        for key in [AbsentReason.vacation, AbsentReason.illness]:
+            users_info[key] = []
 
         for user_id in users_id:
             base_user_info = self._get_base_absent_user_info(user_id=user_id)
@@ -71,11 +75,53 @@ class HurmaService:
             user_contact = self._get_user_contact(user_id=user_id)
             user_contact = user_contact[0] if user_contact else None
 
-            users_info.append(
-                {**base_user_info, "user_name": user_name, "user_contact": user_contact}
-            )
+            for reason in [AbsentReason.vacation_ru, AbsentReason.illness_ru]:
+                if base_user_info["reason"] == reason:
+                    users_info[const.ABSENT_REASON_MAP[reason]].append(
+                        {
+                            **base_user_info,
+                            "user_name": user_name,
+                            "user_contact": user_contact,
+                        }
+                    )
 
-        return users_info
+        return dict(users_info)
+
+    def get_users_events(self) -> Dict[str, list]:
+        """
+        Return all events for current date.
+        """
+        params = {"date": get_current_date()}
+
+        response = self._make_api_request(
+            endpoint=const.USER_EVENTS_ENDPOINT, params=params
+        )
+
+        events_info = defaultdict(list)
+        for key in [EventType.birthday, EventType.anniversary]:
+            events_info[key] = []
+
+        for event in response["events"]:
+            if event["eventName"].startswith(EventType.anniversary_ru):
+                events_info[EventType.anniversary].append(
+                    {
+                        "user_name": event["name"],
+                        "date": get_current_date(),
+                        "years": self._extract_anniversary(
+                            event_name=event["eventName"]
+                        ),
+                    }
+                )
+
+            if event["eventName"].startswith(EventType.birthday_ru):
+                events_info[EventType.birthday].append(
+                    {
+                        "user_name": event["name"],
+                        "day": get_current_date(date_format=const.EVENT_DATE_FORMAT),
+                    }
+                )
+
+        return dict(events_info)
 
     def _get_base_absent_user_info(self, user_id: int) -> dict:
         """
@@ -213,3 +259,25 @@ class HurmaService:
         date_to = dateparser.parse(date)
         current_date = dateparser.parse(get_current_date())
         return (date_to - current_date).days
+
+    @staticmethod
+    def _extract_anniversary(event_name: str) -> int:
+        """
+        Return user anniversary.
+        """
+        return int(event_name.split(" ")[-2])
+
+
+def get_employees_info() -> dict:
+    """
+    Return all data about employee.
+    """
+    service = HurmaService()
+
+    timelines = service.get_users_timeline()
+    absent_users_ids = service.get_absent_user_ids(timelines=timelines)
+    absent_user_info = service.get_absent_users_info(users_id=absent_users_ids)
+
+    user_events = service.get_users_events()
+
+    return {**absent_user_info, **user_events}
