@@ -1,0 +1,40 @@
+{% if is_absent %}
+⚠️⚠️⚠️ <strong>Will be absent TODAY!</strong> ⚠️⚠️⚠️
+
+
+{% if vacation %}
+--- <strong>Vacation</strong> ---
+
+{% for item in vacation %}
+<strong>{{ item.user_name }}</strong> (@{{ item.user_contact }}), {{ item.period.from }} - {{ item.period.to }}, {{ item.days_left }} Days left
+{% endfor %}
+{% endif %}
+
+{% if illness %}
+--- <strong>Illness</strong> ---
+
+{% for item in illness %}
+<strong>{{ item.user_name }}</strong> (@{{ item.user_contact }}), {{ item.period.from }} - {{ item.period.to }}, {{ item.days_left }} Days left
+{% endfor %}
+{% endif %}
+
+{% else %}
+⚠️⚠️⚠️ No scheduled vacations for TODAY! ⚠️⚠️⚠️
+{% endif %}
+
+{% if birthday %}
+🎈🎂🎉 Birthdays 🎈🎂🎉
+
+{% for item in birthday %}
+<strong>{{ item.user_name }}</strong>, {{ item.day }}
+{% endfor %}
+{% endif %}
+
+
+{% if anniversary %}
+🎇🎈🎊 Thank you for being an essential part of our success! 🎈🎇🎊
+
+{% for item in anniversary %}
+<strong>{{ item.user_name }}</strong>, Join date: {{ item.date }}, {{ item.years }} years!
+{% endfor %}
+{% endif %}
