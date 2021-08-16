@@ -16,16 +16,18 @@ def send_message(employee_data: dict):
     """
     bot = Bot(token=config.TELEGRAM_BOT_TOKEN)
 
-    has_absent = any([*employee_data["vacation"], *employee_data["illness"]])
+    has_absent = any(
+        [*employee_data.get("vacation", []), *employee_data.get("illness", [])]
+    )
 
     return bot.send_message(
         chat_id=config.TELEGRAM_CHAT_ID,
         text=template.render(
             is_absent=has_absent,
-            vacation=employee_data["vacation"],
-            illness=employee_data["illness"],
-            birthday=employee_data["birthday"],
-            anniversary=employee_data["anniversary"],
+            vacation=employee_data.get("vacation"),
+            illness=employee_data.get("illness"),
+            birthday=employee_data.get("birthday"),
+            anniversary=employee_data.get("anniversary"),
         ),
         parse_mode=ParseMode.HTML,
     )

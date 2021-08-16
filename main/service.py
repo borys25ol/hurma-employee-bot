@@ -66,8 +66,6 @@ class HurmaService:
         Get all info about absent user.
         """
         users_info = defaultdict(list)
-        for key in [AbsentReason.vacation, AbsentReason.illness]:
-            users_info[key] = []
 
         for user_id in users_id:
             base_user_info = self._get_base_absent_user_info(user_id=user_id)
@@ -98,8 +96,6 @@ class HurmaService:
         )
 
         events_info = defaultdict(list)
-        for key in [EventType.birthday, EventType.anniversary]:
-            events_info[key] = []
 
         for event in response["events"]:
             if event["eventName"].startswith(EventType.anniversary_ru):
@@ -258,7 +254,7 @@ class HurmaService:
         """
         date_to = dateparser.parse(date)
         current_date = dateparser.parse(get_current_date())
-        return (date_to - current_date).days
+        return (date_to - current_date).days + 1
 
     @staticmethod
     def _extract_anniversary(event_name: str) -> int:
