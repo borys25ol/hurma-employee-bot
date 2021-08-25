@@ -10,20 +10,21 @@ env = Environment(
 template = env.get_template(config.TEMPLATE_FILE)
 
 
-def send_message(employee_data: dict):
+def send_message(employee_data: dict, next_day: bool):
     """
     Send formatted message to specific chat id.
     """
     bot = Bot(token=config.TELEGRAM_BOT_TOKEN)
 
-    has_absent = any(
+    is_absent = any(
         [*employee_data.get("vacation", []), *employee_data.get("illness", [])]
     )
 
     return bot.send_message(
         chat_id=config.TELEGRAM_CHAT_ID,
         text=template.render(
-            is_absent=has_absent,
+            is_absent=is_absent,
+            next_day=next_day,
             vacation=employee_data.get("vacation"),
             illness=employee_data.get("illness"),
             birthday=employee_data.get("birthday"),

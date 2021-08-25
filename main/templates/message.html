@@ -1,5 +1,9 @@
 {% if is_absent %}
+{% if next_day %}
+⚠️⚠️⚠️ <strong>Will be absent TOMORROW!</strong> ⚠️⚠️⚠️
+{% else %}
 ⚠️⚠️⚠️ <strong>Will be absent TODAY!</strong> ⚠️⚠️⚠️
+{% endif %}
 
 
 {% if vacation %}

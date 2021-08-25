@@ -1,5 +1,6 @@
 import re
 from collections import defaultdict
+from functools import partial
 from typing import Dict, List
 
 import dateparser
@@ -19,10 +20,11 @@ class HurmaService:
     Hurma API service for extraction users activity info.
     """
 
-    CSFR_TOKEN_RE = r'name="_token" value="(.+)\">'
+    CSRF_TOKEN_RE = r'name="_token" value="(.+)\">'
 
-    def __init__(self):
+    def __init__(self, next_day: bool = False):
         self.cookies = self._make_auth_request()
+        self.get_current_date = partial(get_current_date, next_day=next_day)
 
     def get_users_timeline(self) -> List[dict]:
         """
@@ -36,7 +38,7 @@ class HurmaService:
 
         for page in range(1, total_pages + 1):
             params = {
-                "month": get_current_date(date_format=const.DEFAULT_MONTH_FORMAT),
+                "month": self.get_current_date(date_format=const.DEFAULT_MONTH_FORMAT),
                 "page": page,
             }
             page_response = self._make_api_request(
@@ -89,7 +91,7 @@ class HurmaService:
         """
         Return all events for current date.
         """
-        params = {"date": get_current_date()}
+        params = {"date": self.get_current_date()}
 
         response = self._make_api_request(
             endpoint=const.USER_EVENTS_ENDPOINT, params=params
@@ -102,7 +104,7 @@ class HurmaService:
                 events_info[EventType.anniversary].append(
                     {
                         "user_name": event["name"],
-                        "date": get_current_date(),
+                        "date": self.get_current_date(),
                         "years": self._extract_anniversary(
                             event_name=event["eventName"]
                         ),
@@ -113,7 +115,9 @@ class HurmaService:
                 events_info[EventType.birthday].append(
                     {
                         "user_name": event["name"],
-                        "day": get_current_date(date_format=const.EVENT_DATE_FORMAT),
+                        "day": self.get_current_date(
+                            date_format=const.EVENT_DATE_FORMAT
+                        ),
                     }
                 )
 
@@ -125,7 +129,7 @@ class HurmaService:
         """
         params = {
             "employee_id": user_id,
-            "date": get_current_date(),
+            "date": self.get_current_date(),
         }
 
         response = self._make_api_request(
@@ -175,7 +179,7 @@ class HurmaService:
         :return: Int number with total pages.
         """
         params = {
-            "month": get_current_date(date_format=const.DEFAULT_MONTH_FORMAT),
+            "month": self.get_current_date(date_format=const.DEFAULT_MONTH_FORMAT),
             "page": 1,
         }
         response = self._make_api_request(
@@ -198,7 +202,7 @@ class HurmaService:
         login_page_response = requests.get(url=login_url)
         logger.info(f"Response status: {login_page_response.status_code}")
 
-        token = re.search(pattern=self.CSFR_TOKEN_RE, string=login_page_response.text)
+        token = re.search(pattern=self.CSRF_TOKEN_RE, string=login_page_response.text)
 
         if not token:
             raise CsrfTokenNotFoundException(CSRF_TOKEN_NOT_FOUND)
@@ -240,20 +244,20 @@ class HurmaService:
 
         return api_resp.json()
 
-    @staticmethod
-    def _compare_dates(date: str, date_format: str = const.DEFAULT_DATE_FORMAT) -> bool:
+    def _compare_dates(
+        self, date: str, date_format: str = const.DEFAULT_DATE_FORMAT
+    ) -> bool:
         """
         Check if `date` is today date.
         """
-        return date.split(" ")[0] == get_current_date(date_format=date_format)
+        return date.split(" ")[0] == self.get_current_date(date_format=date_format)
 
-    @staticmethod
-    def _calculate_days_left(date: str) -> int:
+    def _calculate_days_left(self, date: str) -> int:
         """
         Calculate amount of days between `date` and current date.
         """
         date_to = dateparser.parse(date)
-        current_date = dateparser.parse(get_current_date())
+        current_date = dateparser.parse(self.get_current_date())
         return (date_to - current_date).days + 1
 
     @staticmethod
@@ -264,11 +268,11 @@ class HurmaService:
         return int(event_name.split(" ")[-2])
 
 
-def get_employees_info() -> dict:
+def get_employees_info(next_day: bool = False) -> dict:
     """
     Return all data about employee.
     """
-    service = HurmaService()
+    service = HurmaService(next_day=next_day)
 
     timelines = service.get_users_timeline()
     absent_users_ids = service.get_absent_user_ids(timelines=timelines)
