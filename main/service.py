@@ -135,13 +135,19 @@ class HurmaService:
         response = self._make_api_request(
             endpoint=const.USER_SCHEDULE_DATA_ENDPOINT, params=params
         )
+
+        try:
+            days_left = self._calculate_days_left(
+                date=response["activity_data"][0]["date_period"]["to"]
+            )
+        except TypeError:
+            days_left = response["activity_data"][0]["used_days"]
+
         user_info = {
             "user_id": response["people_id"],
             "reason": response["activity_data"][0]["name"],
             "period": response["activity_data"][0]["date_period"],
-            "days_left": self._calculate_days_left(
-                date=response["activity_data"][0]["date_period"]["to"]
-            ),
+            "days_left": days_left,
         }
         return user_info
 
