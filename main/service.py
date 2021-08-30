@@ -262,8 +262,14 @@ class HurmaService:
         """
         Calculate amount of days between `date` and current date.
         """
-        date_to = dateparser.parse(date)
-        current_date = dateparser.parse(self.get_current_date())
+        date_to = dateparser.parse(
+            date_string=date,
+            date_formats=[const.ABSENT_DATE_FORMAT],
+        )
+        current_date = dateparser.parse(
+            date_string=self.get_current_date(),
+            date_formats=[const.DEFAULT_DATE_FORMAT],
+        )
         return (date_to - current_date).days + 1
 
     @staticmethod
