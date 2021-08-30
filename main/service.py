@@ -135,13 +135,19 @@ class HurmaService:
         response = self._make_api_request(
             endpoint=const.USER_SCHEDULE_DATA_ENDPOINT, params=params
         )
+
+        try:
+            days_left = self._calculate_days_left(
+                date=response["activity_data"][0]["date_period"]["to"]
+            )
+        except TypeError:
+            days_left = response["activity_data"][0]["used_days"]
+
         user_info = {
             "user_id": response["people_id"],
             "reason": response["activity_data"][0]["name"],
             "period": response["activity_data"][0]["date_period"],
-            "days_left": self._calculate_days_left(
-                date=response["activity_data"][0]["date_period"]["to"]
-            ),
+            "days_left": days_left,
         }
         return user_info
 
@@ -256,8 +262,14 @@ class HurmaService:
         """
         Calculate amount of days between `date` and current date.
         """
-        date_to = dateparser.parse(date)
-        current_date = dateparser.parse(self.get_current_date())
+        date_to = dateparser.parse(
+            date_string=date,
+            date_formats=[const.ABSENT_DATE_FORMAT],
+        )
+        current_date = dateparser.parse(
+            date_string=self.get_current_date(),
+            date_formats=[const.DEFAULT_DATE_FORMAT],
+        )
         return (date_to - current_date).days + 1
 
     @staticmethod
