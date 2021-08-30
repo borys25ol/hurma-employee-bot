@@ -29,6 +29,7 @@ ABSENT_REASON_MAP = {
 LOG_FORMAT = "[%(asctime)s] %(message)s"
 
 DEFAULT_DATE_FORMAT = "%Y-%m-%d"
+ABSENT_DATE_FORMAT = "%d-%m-%Y"
 DEFAULT_MONTH_FORMAT = "%m-%Y"
 EVENT_DATE_FORMAT = "%d %B"
 
