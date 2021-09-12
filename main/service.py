@@ -59,7 +59,7 @@ class HurmaService:
                 if len(day["activity_data"]) and self._compare_dates(date=day["date"]):
                     absent_user_ids.append(user_data["id"])
 
-        logger.info(f"Get {len(absent_user_ids)} absent user.")
+        logger.info(f"Get {len(absent_user_ids)} absent users.")
 
         return absent_user_ids
 
