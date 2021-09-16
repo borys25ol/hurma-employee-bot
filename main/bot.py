@@ -20,15 +20,18 @@ def send_message(employee_data: dict, next_day: bool):
         [*employee_data.get("vacation", []), *employee_data.get("illness", [])]
     )
 
-    return bot.send_message(
-        chat_id=config.TELEGRAM_CHAT_ID,
-        text=template.render(
-            is_absent=is_absent,
-            next_day=next_day,
-            vacation=employee_data.get("vacation"),
-            illness=employee_data.get("illness"),
-            birthday=employee_data.get("birthday"),
-            anniversary=employee_data.get("anniversary"),
-        ),
-        parse_mode=ParseMode.HTML,
-    )
+    chat_ids = config.TELEGRAM_CHAT_ID.split(",")
+
+    for chat_id in chat_ids:
+        bot.send_message(
+            chat_id=chat_id,
+            text=template.render(
+                is_absent=is_absent,
+                next_day=next_day,
+                vacation=employee_data.get("vacation"),
+                illness=employee_data.get("illness"),
+                birthday=employee_data.get("birthday"),
+                anniversary=employee_data.get("anniversary"),
+            ),
+            parse_mode=ParseMode.HTML,
+        )
